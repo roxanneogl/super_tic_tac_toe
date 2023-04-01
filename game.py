@@ -29,6 +29,18 @@ class game():
     
 
     """
+    prints an intro message to the game
+    :returns: nothing
+    """
+    def intro_message(self):
+        print("Welcome to Super Tic Tac Toe")
+        print("This is a two player game on a mega meta tic tac toe board")
+        print("The megaboard is composed of " + str(_SIZE_META_BOARD*_SIZE_META_BOARD) + "individual tic tac toe boards")
+        print("You can play on anyone of them at anytime")
+        print("Using the normal rules of tic tac toe, when you win an individual board, you take that square in the meta board")
+        print("The mega board follows normal tic tac toe rules as well, so the ultimate task is to win the mega board")
+
+    """
     Helper function for the initial text displayed to the user
     :base_string: a string that changes depending on what is desired from the user
     :range: what range the user's input should be within
@@ -146,6 +158,7 @@ class game():
     :returns: nothing, updates state
     """
     def play_game(self):
+        self.intro_message()
         while not self.game_board.is_game_won():
             self.game_loop()
         print(self.game_board.game_winner() + " wins!")
