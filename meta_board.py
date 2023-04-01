@@ -1,5 +1,5 @@
 
-from single_board import single_board
+from single_board import SingleBoard
 
 """
 This class utilizes the singleBoard class and stores a 2D array
@@ -7,7 +7,7 @@ of singleBoards to represent the multi game board
 It also contains a tracker, in the form of a singleBoard to represnt
 the whole metagame. This is updated when a single board is won
 """
-class meta_board:
+class MetaBoard:
 
     """
     Initialize the metaBoard class
@@ -25,10 +25,10 @@ class meta_board:
         self.size_single_board = size_single_board
 
         # 2day array of boards representing the whole game board
-        self.boards = [[single_board(player_one_string, player_two_string, ascii_dictionary, self.size_single_board) for i in range(self.size_meta_board)] for j in range(self.size_meta_board)]
+        self.boards = [[SingleBoard(player_one_string, player_two_string, ascii_dictionary, self.size_single_board) for i in range(self.size_meta_board)] for j in range(self.size_meta_board)]
 
         # this is single board to keep track of who has won each square and what that implies for the overall game
-        self.meta_board_tracker = single_board(player_one_string, player_two_string, ascii_dictionary, size_meta_board)
+        self.meta_board_tracker = SingleBoard(player_one_string, player_two_string, ascii_dictionary, size_meta_board)
     
     """
     String representation of the class
@@ -64,6 +64,19 @@ class meta_board:
     """
     def game_winner(self):
         return self.meta_board_tracker.winner
+    
+    """
+    Helper function for simplicity
+    :returns: if the game is a tie
+    """
+    def is_game_tie(self):
+        isFull = True
+        # check to see if the game boards are full
+        for row in self.boards:
+            for board in row:
+                if not(board.is_tie()) and not(board.square_won):
+                    isFull = False
+        return self.meta_board_tracker.is_tie() or isFull
     
     """
     Play a singular turn and update the state

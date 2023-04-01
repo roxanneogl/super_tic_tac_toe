@@ -3,7 +3,7 @@ This class represents a single board of the meta tic tac toe game.
 It has a 2d array to represent moves made and keeps track of if
 the square has been won and by whom.
 """
-class single_board:
+class SingleBoard:
 
 
     """
@@ -30,6 +30,10 @@ class single_board:
         """
         self.win_check = {}
         self.initialize_checking_win_dictionary(player_one_string, player_two_string)
+
+        # count to keep track of how many cells are full
+        # so we can know if it's a tie when the board is full
+        self.fill_count = 0
 
         # variables to keep track of it the game has been won and the winner
         self.square_won = False
@@ -112,7 +116,19 @@ class single_board:
             
             if row + column == self.size_board - 1:
                 self.update_and_check_win("diagonal_top_right", player_name)
-                
+
+            self.fill_count += 1
+            
+    """
+    method to check if board is tied aka if it's all filled up
+    but nobody has won
+    :returns: boolean of whether it's a tie
+    """
+    def is_tie(self):
+        if self.fill_count == self.size_board*self.size_board:
+                if not self.square_won:
+                    return True
+        return False
 
     """
     updates our win_check dictionary
@@ -127,3 +143,4 @@ class single_board:
         if self.win_check[(key, player_name)] == self.size_board:
             self.square_won = True
             self.winner = player_name
+    
