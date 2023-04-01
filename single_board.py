@@ -78,6 +78,17 @@ class SingleBoard:
         # to zero since no moves have been made
         self.win_check = dict.fromkeys(dictionary_keys, 0)
 
+
+    """
+    helper method to see if the square is full
+    does not update state
+    :param row: row to be checked
+    :param column: column to be checked
+    """
+    def is_square_full(self, row, column):
+        return self.board[row][column] != '-'
+
+
     """
     play_square method, updates the single board based on input
         row and column.
@@ -87,20 +98,18 @@ class SingleBoard:
     :raises a value error, if the cell is taken
     """
     def play_square(self, row, column, player_name):
-        # this technically is checked at a higher level, but is an
-        # and additional safe guard index testing
+        # all tests where an error is raised are theoretically
+        # checked at a higher level, but there is additional 
+        # error raised for safe-guarding
         if row not in range(self.size_board ):
             raise IndexError("Row is out of bounds")
         elif column not in range(self.size_board):
             raise IndexError("Column is out of bounds")
-        
-        # make sure the cell is empty first:
         elif self.board[row][column] != '-':
-            raise ValueError("Cell is taken, please choose a new location")
-       
+            raise ValueError("Cell is taken")
        # if the whole board has been won, then no additional moves can be made
         elif self.square_won:
-            print("This board has already been won by player " + self.winner + " please try a different square")
+            raise ValueError("This board has already been won by player " + self.winner)
         
         # else we will update the board:
         else:

@@ -103,10 +103,22 @@ class MetaBoard:
     :returns: nothing
     :raises: ValueError if the square has been won
     """
-    def validate_index(self, row, column):
-        if self.boards[row][column].square_won:
-            raise ValueError("This square has already been won.")
+    def is_meta_square_full(self, row, column):
+        return self.meta_board_tracker.is_square_full(row, column)
 
+
+    """
+    Before the row and the column within a specific square are chosen,
+    we want to validate the row and column of the square itself
+    to make sure the square has not been run
+    :row: the row we are checking
+    :column: the column we are checking
+    :returns: nothing
+    :raises: ValueError if the square has been won
+    """
+    def is_sub_square_full(self, row, column, row_within_square, column_within_square):
+        board_to_check = self.boards[row][column]
+        return board_to_check.is_square_full(row_within_square, column_within_square)
     
 
 

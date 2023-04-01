@@ -138,9 +138,9 @@ class Game():
     the fourth step will start the whole function over, since the user may want to 
     pick a new square all together
 
-    :returns: nothing, updates state
+    :returns: the final selected input data
     """
-    def validate_user_input_and_update_position(self):
+    def validate_user_input(self):
         # Step one: validate the type and the range of the input row and column
         initial_input_string_row = self.initial_input_string("row of", _SIZE_META_BOARD)
         initial_input_string_col = self.initial_input_string("column of", _SIZE_META_BOARD)
@@ -148,63 +148,59 @@ class Game():
         col = self.validate_type_and_range(initial_input_string_col, _SIZE_META_BOARD)
 
         # Step two: validate that the square has not been won
-        while True:
-            try:
-                self.game_board.validate_index(row, col)
-            except ValueError as e:
-                print(e)
-                reenter_input_string_row = self.reenter_input_string("row", _SIZE_META_BOARD)
-                reenter_input_string_col = self.reenter_input_string("column", _SIZE_META_BOARD)
-                row = self.validate_type_and_range(reenter_input_string_row, _SIZE_META_BOARD)
-                col = self.validate_type_and_range(reenter_input_string_col, _SIZE_META_BOARD)
-            else:
-                break
+        while self.game_board.is_meta_square_full(row, col):
+            print("This square has been won! Please reenter your square selection")
+            reenter_input_string_row = self.reenter_input_string("row", _SIZE_META_BOARD)
+            reenter_input_string_col = self.reenter_input_string("column", _SIZE_META_BOARD)
+            row = self.validate_type_and_range(reenter_input_string_row, _SIZE_META_BOARD)
+            col = self.validate_type_and_range(reenter_input_string_col, _SIZE_META_BOARD)
         
         # Step three: validate the type and range of the row and column within the specificed square
         initial_input_string_row_in_square = self.initial_input_string("row within", _SIZE_SINGLE_BOARD)
         initial_input_string_col_in_square = self.initial_input_string("column within", _SIZE_SINGLE_BOARD)
         row_in_square = self.validate_type_and_range(initial_input_string_row_in_square, _SIZE_SINGLE_BOARD)
         col_in_square = self.validate_type_and_range(initial_input_string_col_in_square, _SIZE_SINGLE_BOARD)
-
+        
         # Step four: try to play at the desired spot, if it has not been taken
-        try:
-            self.game_board.play_turn(row, col, row_in_square, col_in_square, self.current_player.name)
-        except ValueError as e:
+        while(self.game_board.is_sub_square_full(row, col, row_in_square, col_in_square)):
+            print("This square has been filled! Please reenter your square selection")
             # if the spot has been taken, then start the input process over again
-            print(e)
-            self.validate_user_input_and_update_position()
-        else:
-            # once a move is made, remove it from the possible moves list for the computer
-            self.possible_moves.remove((row, col, row_in_square, col_in_square))
-                 
+            row, col, row_in_square, col_in_square = self.validate_user_input()
+        return row, col, row_in_square, col_in_square
+
     """
-    This is a function that plays as a computer
-    It first chooses a random move out of the available move remaining
-    Then it checks to see if the square in question has not been won yet
-        if so it then updates the possible moves list according
-        and keeps generating new random moves until a valid one is picked
-    Once a valid move is picked, it is removed from possible moves
+    This function updates the state.
+
     :returns: nothing, updates state
     """
-    def computer_plays(self):
-        print("The computer plays")
-        (row, col, row_in_square, col_in_square) = random.choice(self.possible_moves)
-        while(True):
-            try:
-                self.game_board.validate_index(row, col)
-            except ValueError:
-                for row_within_square in range(_SIZE_SINGLE_BOARD):
-                    for col_within_square in range(_SIZE_SINGLE_BOARD):
-                        if (row, col, row_within_square, col_within_square) in self.possible_moves:
-                            self.possible_moves.remove((row, col, row_within_square, col_within_square))
-                (row, col, row_in_square, col_in_square) = random.choice(list(self.possible_moves))
-            else:
-                self.game_board.play_turn(row, col, row_in_square, col_in_square, self.current_player.name)
-                self.possible_moves.remove((row, col, row_in_square, col_in_square))
-                print("The computer plays on row: " + str(row) + ", and col: " + str(col))
-                print("And within that square, the computer plays on row: " + str(row_in_square) +  ", and col: " + str(col_in_square))
-                break
+    def update_position(self, row, col, row_in_square, col_in_square):
+        self.game_board.play_turn(row, col, row_in_square, col_in_square, self.current_player.name)
+        # once a move is made, remove it from the possible moves list for the computer
+        self.possible_moves.remove((row, col, row_in_square, col_in_square))
 
+    """
+    This function validates the computer's random choice
+    If it encounters a full square, it removes all the asociated subsquares
+    from its list of possible moves
+    :returns row, col, row_in_square, col_in_square of computer's validated choice
+    """
+    def validate_computer_input(self):
+        (row, col, row_in_square, col_in_square) = random.choice(self.possible_moves)
+
+        # if the square chosen is full
+        while self.game_board.is_meta_square_full(row, col):
+
+            # remove all squares within it from list of possible moves
+            for row_within_square in range(_SIZE_SINGLE_BOARD):
+                for col_within_square in range(_SIZE_SINGLE_BOARD):
+                    if (row, col, row_within_square, col_within_square) in self.possible_moves:
+                        self.possible_moves.remove((row, col, row_within_square, col_within_square))
+            
+            # finally pick a new move:
+            (row, col, row_in_square, col_in_square) = random.choice(self.possible_moves)
+        return row, col, row_in_square, col_in_square
+
+    
 
     """
     A singular game loop, which first prints the game board
@@ -219,10 +215,31 @@ class Game():
         print(self.game_board)
         print("Player " + self.current_player.name + "'s turn")
         if self.player_identity_is_human[self.current_player.name]:
-            self.validate_user_input_and_update_position()
-        else:
-            self.computer_plays()
+            row, col, row_in_square, col_in_square = self.validate_user_input()
+            # Theoretically the input data should be validated
+            # but for the sake of safe-guarding, there is an additional try catch block to
+            # further error protect
+            while True:
+                try:
+                    self.update_position(row, col, row_in_square, col_in_square)
+                except (ValueError, IndexError) as e:
+                    print(e)
+                    row, col, row_in_square, col_in_square = self.validate_user_input()
+                else:
+                    break
 
+        else:
+            print("The computer plays:")
+            row, col, row_in_square, col_in_square = self.validate_computer_input()
+            # same safe-guarding as before:
+            while True:
+                try:
+                    self.update_position(row, col, row_in_square, col_in_square)
+                except (ValueError, IndexError) as e:
+                    print(e)
+                    row, col, row_in_square, col_in_square = self.validate_user_input()
+                else:
+                    break
 
         self.current_player = Player((self.current_player.value + 1)%2)
     
